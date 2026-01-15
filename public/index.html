@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Socket.IO + Redis Button Test</title>
+    <title>Socket.IO + Redis Test</title>
     <style>
       body {
         font-family: Arial, sans-serif;
@@ -10,10 +10,14 @@
         margin: 40px auto;
         text-align: center;
       }
-      button {
+      button,
+      input {
         padding: 12px 20px;
         font-size: 16px;
-        margin-bottom: 20px;
+        margin: 5px 0;
+      }
+      input {
+        width: 70%;
       }
       #log {
         border: 1px solid #ccc;
@@ -21,12 +25,17 @@
         height: 300px;
         overflow-y: auto;
         text-align: left;
+        margin-bottom: 20px;
       }
     </style>
   </head>
   <body>
-    <h2>Socket.IO + Redis Button Test</h2>
-    <button id="btn">Click Me</button>
+    <h2>Socket.IO + Redis Test</h2>
+
+    <button id="btn">Click Me</button><br />
+    <input id="messageInput" placeholder="Type a message..." />
+    <button id="sendMsg">Send</button>
+
     <div id="log"></div>
 
     <script src="/socket.io/socket.io.js"></script>
@@ -34,16 +43,41 @@
       const socket = io();
       const log = document.getElementById("log");
       const btn = document.getElementById("btn");
+      const msgInput = document.getElementById("messageInput");
+      const sendMsg = document.getElementById("sendMsg");
 
+      // Button click
       btn.onclick = () => {
         socket.emit("button-click");
       };
 
+      // Chat message send
+      sendMsg.onclick = () => {
+        if (!msgInput.value.trim()) return;
+        socket.emit("chat-message", msgInput.value);
+        msgInput.value = "";
+      };
+
+      msgInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") sendMsg.click();
+      });
+
+      // Receive button events
       socket.on("button-event", (data) => {
         const div = document.createElement("div");
         div.textContent =
           `[${new Date(data.time).toLocaleTimeString()}] ` +
-          `Server ${data.port || "local"} | From ${data.from}`;
+          `Button clicked on server ${data.port} by ${data.from}`;
+        log.appendChild(div);
+        log.scrollTop = log.scrollHeight;
+      });
+
+      // Receive chat messages
+      socket.on("chat-message", (data) => {
+        const div = document.createElement("div");
+        div.textContent =
+          `[${new Date(data.time).toLocaleTimeString()}] ` +
+          `Server ${data.port} | ${data.from}: ${data.message}`;
         log.appendChild(div);
         log.scrollTop = log.scrollHeight;
       });
