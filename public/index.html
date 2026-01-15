@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Socket.IO + Redis Test</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 600px;
+        margin: 40px auto;
+      }
+      #messages {
+        border: 1px solid #ccc;
+        padding: 10px;
+        height: 300px;
+        overflow-y: auto;
+        margin-bottom: 10px;
+      }
+      input,
+      button {
+        padding: 8px;
+      }
+      input {
+        width: 75%;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Socket.IO + Redis Chat</h2>
+
+    <div id="messages"></div>
+
+    <input id="messageInput" placeholder="Type a message..." />
+    <button onclick="sendMessage()">Send</button>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      const socket = io();
+
+      const messagesDiv = document.getElementById("messages");
+      const input = document.getElementById("messageInput");
+
+      socket.on("chat-message", (data) => {
+        const div = document.createElement("div");
+        div.textContent = `[${new Date(data.time).toLocaleTimeString()}] ${
+          data.message
+        }`;
+        messagesDiv.appendChild(div);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      });
+
+      function sendMessage() {
+        if (!input.value.trim()) return;
+        socket.emit("chat-message", input.value);
+        input.value = "";
+      }
+
+      input.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") sendMessage();
+      });
+    </script>
+  </body>
+</html>
